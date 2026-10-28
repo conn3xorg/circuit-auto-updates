@@ -106,6 +106,8 @@ Requires Conn3x v0.6.5 or later and systemd on each host. Debian and Ubuntu host
 
 Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64, checks that the second plan has no changes, that the upgrade timer is enabled, active and set to the example's schedule, and that the package manager reads the example's settings: with `apt-config dump` and an `unattended-upgrade --dry-run` on Debian and Ubuntu, and by reading `/etc/dnf/automatic.conf` back through dnf's own parser on Fedora and Rocky Linux, including the reboot command.
 
+The CI containers run with SELinux off. On a Rocky Linux 10 droplet with SELinux enforcing, the example was applied by hand with `reboot = "never"` and the same checks passed. One run of `dnf-automatic.service` then installed the pending updates without rebooting, and the audit log had no denials.
+
 ## License
 
 MPL-2.0. See [LICENSE](LICENSE).
