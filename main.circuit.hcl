@@ -65,7 +65,7 @@ locals {
       %{endfor~}
       };
       Unattended-Upgrade::Automatic-Reboot "${var.reboot == "when-needed"}";
-      Unattended-Upgrade::Automatic-Reboot-Time "${coalesce(var.reboot_time, "now")}";
+      Unattended-Upgrade::Automatic-Reboot-Time "${var.reboot_time}";
     EOT
   }
 
@@ -89,7 +89,8 @@ locals {
     download_updates = yes
     apply_updates = yes
     reboot = ${var.reboot}
-    reboot_command = "shutdown -r ${coalesce(var.reboot_time, "+5")} 'Rebooting after applying package updates'"
+    # Both dnf4 and dnf5 strip the outer double quotes.
+    reboot_command = "shutdown -r ${var.reboot_time} 'Rebooting after applying package updates'"
 
     [emitters]
     emit_via = stdio
@@ -157,11 +158,11 @@ circuit "apt" {
     }
   }
 
-  # systemd reads the drop-in on daemon-reload, and the timer takes the new
-  # schedule when it restarts.
+  # daemon-reload alone reschedules the timer. Restarting it would make a
+  # Persistent timer catch up on a missed run straight away.
   step "schedule_applied" {
     command {
-      command  = "systemctl daemon-reload && systemctl restart apt-daily-upgrade.timer"
+      command  = "systemctl daemon-reload"
       triggers = { schedule = conn3x_file.apt__schedule[each.key].revision }
     }
   }
@@ -224,7 +225,7 @@ circuit "dnf" {
 
   step "schedule_applied" {
     command {
-      command  = "systemctl daemon-reload && systemctl restart ${local.dnf[each.key].timer}"
+      command  = "systemctl daemon-reload"
       triggers = { schedule = conn3x_file.dnf__schedule[each.key].revision }
     }
   }

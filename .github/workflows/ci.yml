@@ -71,28 +71,9 @@ jobs:
           conn3x init
           conn3x apply -auto-approve
           conn3x plan -detailed-exitcode
-      # The upgrade timer is on and runs at the example's 03:00, and the
-      # package manager reads the example's settings.
       - name: Check the timer and the settings
-        run: |
-          sudo podman exec circuit-auto-updates sh -c '
-            set -e
-            if command -v apt-config >/dev/null; then
-              t=apt-daily-upgrade.timer
-              apt-config dump | grep -qx "Unattended-Upgrade::Automatic-Reboot \"true\";"
-              apt-config dump | grep -qx "Unattended-Upgrade::Automatic-Reboot-Time \"04:30\";"
-              apt-config dump | grep -q "Origins-Pattern:: \"origin=.*-updates\""
-              unattended-upgrade --dry-run -d 2>&1 | grep -qF "Initial blacklist: postgresql.*$ linux-image-.*$"
-            else
-              t=$(test -x /usr/bin/dnf5 && echo dnf5-automatic.timer || echo dnf-automatic.timer)
-              grep -qx "reboot = when-needed" /etc/dnf/automatic.conf
-              grep -qxF "excludepkgs = postgresql*,linux-image-*" /etc/dnf/automatic.conf
-              dnf-automatic --help >/dev/null
-            fi
-            systemctl is-enabled "$t"
-            systemctl is-active "$t"
-            systemctl show -p TimersCalendar "$t" | grep -qF "OnCalendar=*-*-* 03:00:00"
-          '
+        working-directory: examples/local
+        run: sudo podman exec -i circuit-auto-updates sh < check.sh
       - name: Clean up
         if: always()
         working-directory: examples/local

@@ -60,12 +60,14 @@ The settings map to each package manager like this:
 | `security_only = true` | Origins: the release's `-security` suite, and on Ubuntu the ESM security archives | `upgrade_type = security` |
 | `security_only = false` | Adds the release itself and its `-updates` suite | `upgrade_type = default` |
 | `reboot` | `Automatic-Reboot`, which reboots when `/var/run/reboot-required` exists | `reboot = never` or `when-needed` |
-| `reboot_time` | `Automatic-Reboot-Time` | `reboot_command = "shutdown -r HH:MM ..."` |
+| `reboot_time` | `Automatic-Reboot-Time` | `reboot_command = "shutdown -r HH:MM ..."`, whose outer quotes dnf strips |
 | `exclude` | `Package-Blacklist`, each glob turned into an anchored regular expression | `excludepkgs` in `[base]` |
 
-Without `reboot_time`, a Debian or Ubuntu host reboots as soon as the updates finish, and a Fedora or Rocky Linux host five minutes after.
+A host that needs a reboot waits for `reboot_time`, 04:00 unless you set it, rather than rebooting as soon as the updates finish.
 
 The schedule drop-in is `conn3x-schedule.conf` in the timer's `.d` directory under `/etc/systemd/system`. It clears the timer's `OnCalendar` and sets yours. Before writing it, the circuit checks `schedule` with `systemd-analyze calendar` on the host, so a typo fails the apply rather than leaving the timer without a schedule. Without `schedule`, the drop-in holds only a comment and the timer keeps the distribution's: 06:00 for both apt-daily-upgrade and dnf automatic, plus a random delay of up to an hour on each.
+
+All three timers have `Persistent=true`, so a run missed while the host was off happens soon after it's back. A new schedule takes effect with `systemctl daemon-reload`, which doesn't trigger a missed run. Restarting the timer would, so the circuit doesn't. Starting a stopped timer does trigger a missed run, so on a host where the timer ran before and was later stopped, the first apply can start an update during the day. With `reboot = "when-needed"`, any reboot it needs still waits for `reboot_time`.
 
 ### What it doesn't cover
 
@@ -86,7 +88,7 @@ The schedule drop-in is `conn3x-schedule.conf` in the timer's `.d` directory und
 | `ssh_become` | bool | `false` | Run commands as root through sudo. Set it when `ssh_user` isn't root. |
 | `security_only` | bool | `true` | Install security updates only. Set it to `false` to install every update from the distribution's own repositories. |
 | `reboot` | string | `"never"` | `"never"`, or `"when-needed"` to reboot when an update asks for it. |
-| `reboot_time` | string | `null` | Time of day to reboot, as `HH:MM` in the host's time zone, such as `"04:30"`. Used when `reboot` is `"when-needed"`. When null, the host reboots straight after the updates. |
+| `reboot_time` | string | `"04:00"` | Time of day to reboot, as `HH:MM` in the host's time zone. Used when `reboot` is `"when-needed"`. |
 | `schedule` | string | `null` | When the upgrade timer runs, as a systemd `OnCalendar` expression such as `"*-*-* 03:00"` or `"Sun 04:00"`. When null, the distribution's own schedule. |
 | `exclude` | list(string) | `[]` | Packages never to update automatically, by name or glob, such as `["postgresql*", "linux-image-*"]`. |
 
@@ -102,7 +104,7 @@ Requires Conn3x v0.6.5 or later and systemd on each host. Debian and Ubuntu host
 
 ## Tested on
 
-Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64, checks that the second plan has no changes, that the upgrade timer is enabled, active and set to the example's schedule, and that the package manager reads the example's settings: with `apt-config dump` and an `unattended-upgrade --dry-run` on Debian and Ubuntu, and from `/etc/dnf/automatic.conf` on Fedora and Rocky Linux.
+Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64, checks that the second plan has no changes, that the upgrade timer is enabled, active and set to the example's schedule, and that the package manager reads the example's settings: with `apt-config dump` and an `unattended-upgrade --dry-run` on Debian and Ubuntu, and by reading `/etc/dnf/automatic.conf` back through dnf's own parser on Fedora and Rocky Linux, including the reboot command.
 
 ## License
 

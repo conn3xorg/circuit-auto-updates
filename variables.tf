@@ -54,11 +54,11 @@ variable "reboot" {
 
 variable "reboot_time" {
   type        = string
-  default     = null
-  description = "Time of day to reboot, as HH:MM in the host's time zone, when reboot is \"when-needed\". When null, the host reboots straight after the updates."
+  default     = "04:00"
+  description = "Time of day to reboot, as HH:MM in the host's time zone, when reboot is \"when-needed\"."
 
   validation {
-    condition     = var.reboot_time == null || can(regex("^([01][0-9]|2[0-3]):[0-5][0-9]$", coalesce(var.reboot_time, "-")))
+    condition     = can(regex("^([01][0-9]|2[0-3]):[0-5][0-9]$", var.reboot_time))
     error_message = "reboot_time must be a 24-hour time such as \"04:30\"."
   }
 }
