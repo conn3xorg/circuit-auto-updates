@@ -8,7 +8,7 @@ The updates run from a systemd timer on each host, so they keep going whether or
 
 ```hcl
 module "auto_updates" {
-  source = "github.com/conn3xorg/circuit-auto-updates?ref=v0.1.0"
+  source = "github.com/conn3xorg/circuit-auto-updates?ref=v0.2.0"
 
   hosts                = { web = "192.168.1.20", db = "192.168.1.21" }
   ssh_private_key_file = "~/.ssh/id_ed25519"
