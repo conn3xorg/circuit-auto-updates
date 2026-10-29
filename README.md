@@ -25,7 +25,7 @@ Then run `conn3x init` and `conn3x apply`. A second `conn3x plan` says `No chang
 
 Each host installs updates at about 03:00 and, when one of them needs a reboot, such as a new kernel, reboots at 04:30. PostgreSQL is left for you to upgrade by hand.
 
-For hosts created in the same plan, pass host objects with the host key you generated, so Conn3x checks it without a known_hosts entry. Give each one's distribution in `os` too: the circuit picks its packages by distribution, and Conn3x can't ask a host that doesn't exist yet. The plan fails if `os` turns out not to match the host. Set `os` as well when you put `depends_on` on this module: `depends_on` holds back reading the hosts until the apply, so without `os` the plan fails with `Invalid for_each argument`.
+For hosts created in the same plan, pass host objects with the host key you generated, so Conn3x checks it without a known_hosts entry. Give each one's distribution in `os` too: the circuit picks its packages by distribution, and Conn3x can't ask a host that doesn't exist yet. If `os` turns out not to match the host, Conn3x stops before configuring it. Set `os` as well when you put `depends_on` on this module: `depends_on` holds back reading the hosts until the apply, so without `os` the plan fails with `Invalid for_each argument`.
 
 ```hcl
 hosts = {
