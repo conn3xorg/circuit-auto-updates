@@ -25,13 +25,14 @@ Then run `conn3x init` and `conn3x apply`. A second `conn3x plan` says `No chang
 
 Each host installs updates at about 03:00 and, when one of them needs a reboot, such as a new kernel, reboots at 04:30. PostgreSQL is left for you to upgrade by hand.
 
-For hosts created in the same plan, pass host objects with the host key you generated, so Conn3x checks it without a known_hosts entry:
+For hosts created in the same plan, pass host objects with the host key you generated, so Conn3x checks it without a known_hosts entry. Give each one's distribution in `os` too: the circuit picks its packages by distribution, and Conn3x can't ask a host that doesn't exist yet. If `os` turns out not to match the host, Conn3x stops before configuring it. Set `os` as well when you put `depends_on` on this module: `depends_on` holds back reading the hosts until the apply, so without `os` the plan fails with `Invalid for_each argument`.
 
 ```hcl
 hosts = {
   for name, d in digitalocean_droplet.app : name => {
     address  = d.ipv4_address
     host_key = tls_private_key.host[name].public_key_openssh
+    os       = "ubuntu"
   }
 }
 ```
@@ -80,7 +81,7 @@ All three timers have `Persistent=true`, so a run missed while the host was off 
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| `hosts` | any | Required | Hosts to configure, by name. Each value is an address, such as `"203.0.113.10"`, or a host object such as `{ address = "203.0.113.10", host_key = "ssh-ed25519 AAAA..." }`. A host object can also set `user`, `port`, `private_key_file` and `jump_hosts`. The two forms can be mixed. |
+| `hosts` | any | Required | Hosts to configure, by name. Each value is an address, such as `"203.0.113.10"`, or a host object such as `{ address = "203.0.113.10", host_key = "ssh-ed25519 AAAA..." }`. A host object can also set `user`, `port`, `private_key_file`, `jump_hosts` and `os`, the distribution's ID, such as `ubuntu` or `rocky`, which a host created in the same plan needs. The two forms can be mixed. |
 | `ssh_user` | string | `"root"` | User to log in as. |
 | `ssh_port` | number | `22` | SSH port. |
 | `ssh_private_key_file` | string | `null` | Path to a private key. When null, Conn3x uses the SSH agent. |
