@@ -1,5 +1,7 @@
 # circuit-auto-updates
 
+[![Conn3x grade](https://conn3x.org/circuits/auto-updates/grade.svg)](https://conn3x.org/circuits/auto-updates/grade)
+
 A Conn3x circuit that keeps your hosts patched on their own. It sets up the package manager's own automatic updates, unattended-upgrades on Debian and Ubuntu and dnf's automatic updates on Fedora and Rocky Linux, and makes the settings you'd otherwise hand-edit on every box into a handful of inputs: security updates only or everything, whether to reboot, when, and which packages to leave alone.
 
 The updates run from a systemd timer on each host, so they keep going whether or not you run Conn3x again. What Conn3x keeps in step is the configuration: if someone edits it or turns the timer off, the next `conn3x plan` shows it.
