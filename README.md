@@ -103,7 +103,7 @@ All three timers have `Persistent=true`, so a run missed while the host was off 
 
 ## Requirements
 
-Requires Conn3x v0.6.5 or later and systemd on each host. Debian and Ubuntu hosts must be Debian or Ubuntu themselves, not a derivative, since the allowed origins name them. Hosts need to reach their package mirrors.
+Requires Conn3x v0.29.0 or later and systemd on each host. Debian and Ubuntu hosts must be Debian or Ubuntu themselves, not a derivative, since the allowed origins name them. Hosts need to reach their package mirrors.
 
 ## Tested on
 
