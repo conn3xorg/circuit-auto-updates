@@ -173,8 +173,8 @@ circuit "apt" {
   # daemon-reload alone reschedules the timer. Restarting it would make a
   # Persistent timer catch up on a missed run straight away.
   step "schedule_applied" {
-    command {
-      command  = "systemctl daemon-reload"
+    service_action {
+      action   = "daemon-reload"
       triggers = { schedule = conn3x_file.apt__schedule[each.key].revision }
     }
   }
@@ -236,8 +236,8 @@ circuit "dnf" {
   }
 
   step "schedule_applied" {
-    command {
-      command  = "systemctl daemon-reload"
+    service_action {
+      action   = "daemon-reload"
       triggers = { schedule = conn3x_file.dnf__schedule[each.key].revision }
     }
   }
